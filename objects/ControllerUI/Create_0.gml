@@ -97,3 +97,9 @@ for (var j = 0; j < scene_count; j++) scene_complete[j] = false;
 
 // Bloqueo de avance hacia escenas futuras
 lock_progression = true;
+
+
+// Moviendo item existente
+moving_item_index = -1;
+moving_offset_x   = 0;
+moving_offset_y   = 0;

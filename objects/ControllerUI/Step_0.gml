@@ -6,6 +6,7 @@
 var mx = device_mouse_x_to_gui(0);
 var my = device_mouse_y_to_gui(0);
 
+
 // ---------- SCROLL VERTICAL: ASSETS ----------
 if (point_in_rectangle(mx, my, rect_assets.x1, rect_assets.y1, rect_assets.x2, rect_assets.y2)) {
     asset_scroll += (mouse_wheel_down() - mouse_wheel_up()) * asset_scroll_step;
@@ -120,6 +121,78 @@ if (mouse_check_button_pressed(mb_left) && !drag_scrolling_scenes && !asset_drag
                         // feedback opcional de bloqueo
                     }
                 }
+            }
+        }
+    }
+}
+
+// -------------------------------
+// 1. Click en sprite existente → empezar movimiento
+// -------------------------------
+if (!drag_active && moving_item_index < 0 && mouse_check_button_pressed(mb_left)) {
+    var placed_list = placed_by_scene[current_scene];
+    if (is_array(placed_list)) {
+        for (var i = array_length(placed_list) - 1; i >= 0; i--) {
+            var itm = placed_list[i];
+            var spr = itm.spr;
+            var scale = itm.scale;
+            var sw = sprite_get_width(spr) * scale;
+            var sh = sprite_get_height(spr) * scale;
+
+            if (point_in_rectangle(mx, my, itm.x - sw/2, itm.y - sh/2, itm.x + sw/2, itm.y + sh/2)) {
+                moving_item_index = i;
+                moving_offset_x = mx - itm.x;
+                moving_offset_y = my - itm.y;
+                break;
+            }
+        }
+    }
+}
+
+// -------------------------------
+// 2. Mover sprite existente
+// -------------------------------
+if (moving_item_index >= 0 && mouse_check_button(mb_left)) {
+    var placed_list = placed_by_scene[current_scene];
+    if (is_array(placed_list)) {
+        placed_list[moving_item_index].x = mx - moving_offset_x;
+        placed_list[moving_item_index].y = my - moving_offset_y;
+    }
+}
+
+// -------------------------------
+// 3. Soltar sprite
+// -------------------------------
+if (moving_item_index >= 0 && mouse_check_button_released(mb_left)) {
+    var placed_list = placed_by_scene[current_scene];
+    if (is_array(placed_list)) {
+        var itm = placed_list[moving_item_index];
+
+        itm.x = clamp(itm.x, rect_scene.x1, rect_scene.x2);
+        itm.y = clamp(itm.y, rect_scene.y1, rect_scene.y2);
+        placed_list[moving_item_index] = itm;
+    }
+
+    moving_item_index = -1;
+    scene_complete[current_scene] = ui_is_scene_complete(current_scene);
+}
+
+// ===========================================
+// 4 Eliminar sprite con click derecho
+// ===========================================
+if (!drag_active && mouse_check_button_pressed(mb_right)) {
+    var placed_list = placed_by_scene[current_scene];
+    if (is_array(placed_list)) {
+        for (var i = array_length(placed_list) - 1; i >= 0; i--) {
+            var itm = placed_list[i];
+            var spr = itm.spr;
+            var scale = itm.scale;
+            var sw = sprite_get_width(spr) * scale;
+            var sh = sprite_get_height(spr) * scale;
+
+            if (point_in_rectangle(mx, my, itm.x - sw/2, itm.y - sh/2, itm.x + sw/2, itm.y + sh/2)) {
+                array_delete(placed_list, i, 1);
+                break;
             }
         }
     }
